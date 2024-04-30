@@ -1,3 +1,5 @@
+<script> MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] } }; </script> <script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"> </script> <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"> </script>
+
 # Explaining GANs to your grandmother: a guide
 
 _Generative Adversarial Networks (GANs)_ are a type of Neural Network created by Ian Goodfellow and his colleagues back in 2014. The **'Generative'** term in its name clearly indicates that this is a type of neural network that generates something. In this case, its a Neural Network that generates images. Ever wondered how?
