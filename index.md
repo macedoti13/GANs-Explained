@@ -77,3 +77,77 @@ $$ x^{(j)*} = (z^{(j)} + \theta_1) * \theta_2 = (z^{(j)} + 10) * 2 = [11.22, 10.
 Now, our discriminator will have a much harder time to classify $[11.22, 10.23]$ as **fake** when the real data looks like $[13.2, 8.7]$. They could have very much be sampled from the same distribution. That's the hole point of GANs!
 
 ## Training GANs
+
+Training Generative Adversarial Networks is not a simple task. So let's take a look at how its done step-by-step so your grandmother understands it pretty easily.
+
+### 1. Training the Discriminator
+
+As you've seen, the discriminator is just a binary classifier. It receives a data point as input and needs to classify it as real (drawn from the real data points collection) or fake (created by the generator). This is a very simple binary classification problem and your grandma already knows that, for problems such as this, we use the **binary cross-entropy** as our loss function.
+
+This is the binary cross-entropy loss function:
+
+$$ L_{BCE} = - \frac{1}{n} \sum_{i=1}^n (y_i \cdot\ln{\hat y_i} + (1 - y_i) \cdot \ln{1-\hat y_i}) $$
+
+Don't be scared by it, it's pretty simple. Consider $y_i$ as the answer (or label) for our input, and $\hat y_i$ as the predicted label for this input, by our model. $\hat y_i$ is the estimated probability, given by our model, of $y_i$ being equal to $1$. We want you model to be correct, so we want it's prediction $\hat y_i$ to be very close to $1$ (very high probability of $y_i$ being $1$) when $y_i = 1$ and very close to $0$ (very low probability of $y_i$ being $1$) when $y_i = 0$.
+
+Considering the prediction for one single datapoint $i=n$:
+
+- If the answer (label) for this datapoint is $y_n=1$, then:
+  - If our model estimated a very high probability of $y_n$ being equal to one (let's say $0.95$), then we calculate the loss as: $$ -(1 \cdot \ln{0.95}) + (1-1) \cdot \ln{1-0.95} = \newline -(1 \cdot \ln{0.95} + 0 \cdot \ln{0.05}) = \newline -(1 \cdot \ln{0.95}) = \newline -\ln{0.95} \approx 0.051 $$
+    - Which is very very small, and that's good. We wan't the loss to be very small, because it means that our model is great.
+
+  - If our model estimated a very low probability of $y_n$ being equal to one ($0.01$), then the loss is: $$ -(1 \cdot \ln{0.01} + (1 - 1) \cdot \ln{1-0.01}) = \newline -\ln{0.01} \approx 4.605 $$
+    - Which is very very high, and that's bad, because we wan't the loss be small.
+
+You see? It's very simple to understand the binary cross-entropy loss. If our model predicts correctly, the loss is very small, otherwise, it's very big.
+
+We are training your discriminator model with the binary cross-entropy loss: If it predicts that a given input has a very high probability of being created by the generator, and this input is actually fake, it's loss will be very small.
+
+In other words, the discriminator is trying to **minimize** the binary cross-entropy loss, like this:
+
+$$ \hat\phi = \argmin_\phi [-\sum_{i=1}^n y_i \cdot \ln{\hat y_i} + (1 - y_i) \cdot \ln{1-\hat y_i}] $$
+
+- This equation means that we are trying to discover the parameters $\phi$ (discriminator's parameters) that will **minimize** the binary cross-entropy. The parameters that are able to do that are given by $\hat\phi$. As simple as that.
+
+### 2. Training the Generator
+
+Ok, now your grandmother knows what the discriminator is trying to do. It's trained to minimize the binary cross-entropy loss and correctly classify every input it receives as either real or fake. But what about the generator?
+
+Remember what we were talking earlier. This is a Generative **Adversarial** Network. So the generator is competing agains the discriminator, trying to fool it. You know were I'm trying to get at, right? Your grandma certainly do.
+
+If the discriminator is trying to correclty classify each data point as either real or fake, then the generator is trying to make its adversary to make a mistake. Therefore, the generator is trying to **maximize** the binary cross-entropy loss. Like this:
+
+$$ \hat\theta = \argmax_\theta [-\sum_{i=1}^n y_i \cdot \ln{\hat y_i} + (1 - y_i) \cdot \ln{1-\hat y_i}] $$
+
+- This equation means taht we are trying to discover the parameteres $\theta$ (generator's parameters) that will **maximize** the binary cross-entropy. The parameters that are able to do that are given by $\hat\theta$. As simple as that.s
+
+### 3. Putting it altogether
+
+We have two networks: a generator and a discriminator. The discriminator wants to **minimize** the binary cross-entropy loss, while the generator wants to **maximize** this same loss. This is a two player **_MinMax_** game!
+
+_A MinMax game is a set up were one player is trying to maximize it's chances of winning, while the other player is trying to minimize the chances of it's opponent winning._
+
+We can translate this MinMax game and give our GAN a single loss function, that encapsulates the objectives of both models, take a look:
+
+$$ \hat\phi, \hat\theta = \argmin_{\phi}[\argmax_{\theta}[-\sum_{i=1}^ny_i\cdot \ln{\hat y_i + (1-y_i)\cdot \ln{1-\hat y_i}}]] $$
+
+This equation is good, but it's not very clear. Let's divide this in two cases:
+
+1. Discriminator evaluates real data
+    - Here, $y_i = 1$ and $(1-y_i)=0$, so we have this:
+    $$ -\sum_{i=1}^n \ln{\hat y_i} $$
+    - Also, we knowing that the data is real, we know $\hat y_i$ can be represented as $ \sigma (f[x^{(i)}, \phi]) $. So, our case for when the data is real is this:
+    $$ -\sum_{i=1}^n \ln{[\sigma (f[x^{(i)}, \phi])]} $$
+2. Discriminator evaluates fake data
+    - Here, $y_j = 0$ and $(1-y_j)=1$, so we have this:
+    $$ -\sum_{j=1}^m\ln{1-\hat y_j} $$
+    - Also, knowing that the data is fake, we know $\hat y_j$ is the output of the generator, so it can be represented as $ \sigma(f[g[z^{(j)}, \theta], \phi]) $. So, our case for when the data is fake if this:
+    $$ -\sum_{j=1}^m\ln{[1-\sigma(f[g[z^{(j)}, \theta],\phi])]} $$
+
+Joining this back into one single equation, we have this:
+
+$$ \hat\phi, \hat\theta = \argmin_{\phi}[\argmax_{\theta}[-\sum_{i=1}^n \ln{[\sigma (f[x^{(i)}, \phi])]} -\sum_{j=1}^m\ln{[1-\sigma(f[g[z^{(j)}, \theta],\phi])]}]] $$
+
+All this simplification (if you call simplification as adding more weird symbols and making it bigger) generates the **MinMax Loss**, a central piece in Generative Adversarial Networks. By this point, your grandma is an expert in GANs.
+
+## Very Nice, but what about the problems?
