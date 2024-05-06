@@ -4,7 +4,7 @@
 
 ## Introduction
 
-Have you ever wondered how _Generative AI_ works? There are dozens of different methods on how AI can be used to generate something specific, like texts, images, videos, etc. In the last couple of years, Generative AI researchers have developed many architectures that are not just the basic regression/classification machine learning models. Using the same math and principles of already well-established methods, a new field in AI has been born, the generative field.
+Have you ever wondered how _Generative AI_ works? There are dozens of different methods on how AI can be used to generate something specific, like text, images, videos, etc. In the last couple of years, Generative AI researchers have developed many architectures that are not specifically targeted at tackling basic regression/classification problems. Using the same math and principles of already well-established methods, a new field in AI has been born, the generative field.
 
 The idea is very simple: a neural network that generates new data points that are similar to the data points it has been trained on. Basically, new data points that come from the same probability distribution as the training data points.
 
@@ -47,7 +47,7 @@ The objective of the **Generator** is to generate new samples that are indisting
 
 ### The Generator Network
 
-The Generator is a network that generates new samples from the same distribution as the data it was trained on.
+The Generator is a network that tries to generates new samples from the same distribution as the data it was trained on.
 
 Our training data is a set of $n$ instances:
 
@@ -57,7 +57,7 @@ We want to generate $h$ new samples:
 
 $$ \text{new samples = }\{x^{(j)*}\}_{j=0}^h $$
 
-These new $\{x^{(j)*}\}$ samples must follow the same probability distribution as the training data. That's important because we want the generated samples to be representative of the real-world data the model was trained on.
+We want these new $\{x^{(j)*}\}$ samples to follow the same probability distribution as the training data. That's important because we want the generated samples to be representative of the real-world data the model was trained on.
 
 We do this by first sampling a latent random variable $z^{(j)}$ from a known distribution, such as a normal or uniform distribution. Then, we input this latent variable into our network to obtain its output $x^{(j)*}$ (a new, generated sample):
 
@@ -101,7 +101,7 @@ Now, a little time has passed, we've trained our generator a bit more and got $\
 
 $$ x^{(j)*} = (z^{(j)} + theta_1) * theta_2 = (z^{(j)} + 10) * 2 = [11.22, 10.23]$$
 
-Now, our discriminator will have a much harder time classifying $[11.22, 10.23]$ as **fake** when the real data looks like $[13.2, 8.7]$. They could very well have been sampled from the same distribution. That's the whole point of GANs!
+Now, our discriminator will have a much harder time classifying $[11.22, 10.23]$ as **fake** when the real data looks like $[13.2, 8.7]$. They could very well have been sampled from the same distribution. That's the whole point of GANs! Our new, generated sample is very similar to the original ones and that's good. Because if the real ones were dog pictures, the generated ones are as well.
 
 ## Training GANs
 
@@ -128,7 +128,7 @@ Considering the prediction for one single datapoint $i=n$:
 
 You see? It's very simple to understand the binary cross-entropy loss. If our model predicts correctly, the loss is very small, otherwise, it's very big.
 
-We are training your discriminator model with the binary cross-entropy loss: If it predicts that a given input has a very high probability of being created by the generator, and this input is actually fake, its loss will be very small.
+We are training your discriminator model with the binary cross-entropy loss: If it predicts that a given input has a very high probability of being created by the generator, and this input is in fact fake, its loss will be very small.
 
 In other words, the discriminator is trying to **minimize** the binary cross-entropy loss, like this:
 
@@ -175,4 +175,56 @@ Joining this back into one single equation, we have this:
 
 $$ \hat\phi, \hat\theta = \argmin_{\phi}[\argmax_{\theta}[-\sum_{i=1}^n \ln{[\sigma (f[x^{(i)}, \phi])]} -\sum_{j=1}^m\ln{[1-\sigma(f[g[z^{(j)}, \theta], \phi])]}]] $$
 
-All this simplification (if you call simplification as adding more weird symbols and making it bigger) generates the **MinMax Loss**, a central piece in Generative Adversarial Networks. By this point, your grandma is an expert in GANs.
+This ugly thing in the combination of the of both the Generator and Discriminator losses into one. This simplification (if you call simplification as adding more weird symbols and making it bigger) is called the **MinMax Loss**, a central piece in Generative Adversarial Networks. By this point, your grandma is an expert in GANs.
+
+### 4. The Training Loop
+
+Now that we have a loss function, let's see how everything really works.
+
+So, we have two neural networks that are training simultaneously: the Generator and the Discriminator. The generator's input is a random latent variable, sampled from a standard probability distribution, such as the Normal or Uniform distribution, which is chosen by the user at the beginning of the training loop. Each latent variable will be inputted into the Generator, which will output a new generated sample.
+
+The Discriminator will receive one of two inputs: either a real data point sampled from the training data (a real dog image, for example) or a generated sample that just came out of the generator. The discriminator's output will be the probability of this sample being fake (ranging from 0 to 1). From the discriminator's output, the loss will be calculated and the weights of both networks will be updated based on the result of the turn.
+
+Note: Only one sample (either real or fake) will be given to the discriminator at a time.
+
+Take a look at this image that explains our training setup:
+
+![Train setup](images/train_setup.png "Train setup")
+
+As you can see from the image, the latent random variable is not in the same shape as the real samples. It's the Generator's job (often a convolutional network) to transform this random variable into a variable with the same shape as the real data.
+
+Take a look at this other image that explains a bit more about what happens during training:
+
+![Train setup](images/training_gans.png "Train setup")
+
+Looking at this graph, it's easy to realize why we need the generated samples to be as similar as possible to the real samples. The closer they are, the harder time the discriminator will have classifying each input as either real or fake. In this case, if the real samples are images of dogs, then the generated samples should be very convincing images of dogs. That's exactly what we want.
+
+Let's get a bit deeper. Take a look at the training loop: 
+
+
+#### Training Loop for GANs
+-------------------------------------
+
+**for** number of training iterations **do**
+  - **for** steps **do**
+    - sample $\text{m}$ noise samples $\{z^{(1)}, ...,z^{(m)}\}$ from noise prior $p_g(z)$
+    - sample $\text{m}$ real data points $\{x^{(1)}, ...,x^{(m)}\}$ from generating distribution $p_{\text{data}}(x)$
+    - update the discriminator throught gradient descent: 
+    $ \frac{\partial}{\partial_\phi} \frac{1}{m}\sum_{i=1}^m [\ln{(\sigma{(f[x^{(i)},\phi])})} + \ln{(1 -\sigma(f[g[z^{(i)}, \theta], \phi]))}]$ 
+  
+  $ \newline $
+  - **end for**
+  - sample $\text{m}$ noise samples $\{z^{(1)}, ...,z^{(m)}\}$ from noise prior $p_g(z)$
+  - update the generator throught gradient descent:
+  $ \frac{\partial}{\partial_\theta} \frac{1}{m} \sum_{i=1}^{m} [\ln{(1 -\sigma(f[g[z^{(i)}, \theta], \phi]))}]$ 
+
+**end for**
+
+-------------------------------------
+
+**Important Notes from the training loop:**
+
+- The noise prior distribution $p_g(z)$ is the data distribution where the latent random variables $ z $ come from. This is chosen by the user and is usually a Normal or Uniform distribution. 
+- The generating distribution $p_{\text{data}}(x)$ is the distribution of the real data. We don't know this distrubution. It's the one we are trying to approximate with our generator model.
+
+So this is how GANs actually work. This is how they are trained and how their samples 
