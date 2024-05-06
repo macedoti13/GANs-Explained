@@ -199,10 +199,10 @@ Take a look at this other image that explains a bit more about what happens duri
 
 Looking at this graph, it's easy to realize why we need the generated samples to be as similar as possible to the real samples. The closer they are, the harder time the discriminator will have classifying each input as either real or fake. In this case, if the real samples are images of dogs, then the generated samples should be very convincing images of dogs. That's exactly what we want.
 
-Let's get a bit deeper. Take a look at the training loop: 
-
+Let's get a bit deeper. Take a look at the training loop:
 
 #### Training Loop for GANs
+
 -------------------------------------
 
 **for** number of training iterations **do**
@@ -224,7 +224,7 @@ Let's get a bit deeper. Take a look at the training loop:
 
 **Important Notes from the training loop:**
 
-- The noise prior distribution $p_g(z)$ is the data distribution where the latent random variables $ z $ come from. This is chosen by the user and is usually a Normal or Uniform distribution. 
+- The noise prior distribution $p_g(z)$ is the data distribution where the latent random variables $ z $ come from. This is chosen by the user and is usually a Normal or Uniform distribution.
 - The generating distribution $p_{\text{data}}(x)$ is the distribution of the real data. We don't know this distrubution. It's the one we are trying to approximate with our generator model.
 
-So this is how GANs actually work. This is how they are trained and how their samples 
+So this is how GANs actually work. This is how they are trained and how they generate very high quality samples.
