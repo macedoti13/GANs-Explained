@@ -4,7 +4,7 @@
 
 ## Introduction
 
-Have you ever wondered how _Generative AI_ works? There are dozens of different methods on how AI can be used to generate something specific, like text, images, videos, etc. In the last couple of years, Generative AI researchers have developed many architectures that are not specifically targeted at tackling basic regression/classification problems. Using the same math and principles of already well-established methods, a new field in AI has been born, the generative field.
+Have you ever wondered how _Generative AI_ works? There are dozens of different methods on how AI can be used to generate new data, like text, images, videos, etc. In the last couple of years, Generative AI researchers have developed many architectures that are not specifically targeted at tackling basic regression/classification problems. Using the same math and principles of already well-established methods, a new field in AI has been born, the generative field.
 
 The idea is very simple: a neural network that generates new data points that are similar to the data points it has been trained on. Basically, new data points that come from the same probability distribution as the training data points.
 
@@ -47,7 +47,7 @@ The objective of the **Generator** is to generate new samples that are indisting
 
 ### The Generator Network
 
-The Generator is a network that tries to generates new samples from the same distribution as the data it was trained on.
+The Generator is a network that tries to generate new samples from the same distribution as the data it was trained on.
 
 Our training data is a set of $n$ instances:
 
@@ -206,7 +206,9 @@ Let's get a bit deeper. Take a look at the training loop:
 -------------------------------------
 
 **for** number of training iterations **do**
+
   - **for** steps **do**
+
     - sample $\text{m}$ noise samples $\{z^{(1)}, ...,z^{(m)}\}$ from noise prior $p_g(z)$
     - sample $\text{m}$ real data points $\{x^{(1)}, ...,x^{(m)}\}$ from generating distribution $p_{\text{data}}(x)$
     - update the discriminator throught gradient descent: 
@@ -226,5 +228,20 @@ Let's get a bit deeper. Take a look at the training loop:
 
 - The noise prior distribution $p_g(z)$ is the data distribution where the latent random variables $ z $ come from. This is chosen by the user and is usually a Normal or Uniform distribution.
 - The generating distribution $p_{\text{data}}(x)$ is the distribution of the real data. We don't know this distrubution. It's the one we are trying to approximate with our generator model.
+- The inner loop (**steps**) is the number of times you update the discriminator's weights before you start updating the generator's weights. No, you don't need to update them in the same rythm.
 
 So this is how GANs actually work. This is how they are trained and how they generate very high quality samples.
+
+## References
+
+- [1] "Generative Adversarial Networks - Wikipedia". Available at: [https://en.wikipedia.org/wiki/Generative_adversarial_network](https://en.wikipedia.org/wiki/Generative_adversarial_network)
+
+- [2] "Generative Adversarial Networks Explained - YouTube". Available at: [https://www.youtube.com/watch?v=Gib_kiXgnvA&list=WL&index=11&t=396s](https://www.youtube.com/watch?v=Gib_kiXgnvA&list=WL&index=11&t=396s)
+
+- [3] "Understanding Generative Adversarial Networks (GANs) - Towards Data Science". Available at: [https://towardsdatascience.com/understanding-generative-adversarial-networks-gans-cd6e4651a29](https://towardsdatascience.com/understanding-generative-adversarial-networks-gans-cd6e4651a29)
+
+- [4] "GAN Structure - Google Developers". Available at: [https://developers.google.com/machine-learning/gan/gan_structure](https://developers.google.com/machine-learning/gan/gan_structure)
+
+- [5] "Generative Adversarial Networks Explained - IBM Developer". Available at: [https://developer.ibm.com/articles/generative-adversarial-networks-explained/](https://developer.ibm.com/articles/generative-adversarial-networks-explained/)
+
+- [6] Ian J. Goodfellow et al. "Generative Adversarial Networks". arXiv:1406.2661 [cs.LG]. Available at: [https://arxiv.org/abs/1406.2661](https://arxiv.org/abs/1406.2661)
